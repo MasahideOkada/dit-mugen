@@ -235,7 +235,7 @@ class DiT(nn.Module):
     """
     DiT architecture\n
     args:
-    - `input len`: input length of each channel
+    - `input_len`: input length of each channel
     - `in_channels`: number of input channels
     - `segment_len`: splits input into small segments whose length is this value, defalut `4`
     - `embed_dim`: embedding size, default `512`

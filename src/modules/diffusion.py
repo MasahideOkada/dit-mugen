@@ -21,7 +21,7 @@ def linear_noise_scheduler(
     returns noise scheduling function
     """
     assert 0 <= start and start <= end and end <= 1.0,\
-        "`start` and `end` must satisfy 0 <= `start` <= `end`"
+        "`start` and `end` must satisfy 0 <= `start` <= `end` <= 1"
 
     def scheduler(t: Tensor) -> tuple[Tensor, Tensor, Tensor]:
         """
