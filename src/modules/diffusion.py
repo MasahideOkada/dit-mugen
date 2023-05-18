@@ -45,7 +45,7 @@ def cosine_noise_scheduler(name: str) -> Callable[[Tensor], tuple[Tensor, Tensor
     one used in 'Moûsai: Text-to-Music Generation with Long-Context Latent Diffusion'(https://arxiv.org/abs/2301.11757)\n
     the other used in 'Noise2Music: Text-conditioned Music Generation with Diffusion Models'(https://arxiv.org/abs/2302.03917)\n
     args:
-    - `name`: name of schedule, `mousai` or 'noise2music'\n
+    - `name`: name of schedule, 'mousai' or 'noise2music'\n
     returns noise scheduling function
     """
     a, b = 0., 0.
