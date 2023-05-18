@@ -10,14 +10,14 @@ from torch import Tensor
 import torch.nn as nn
 
 def linear_noise_scheduler(
-    start: float,
-    end: float
+    start: float = 0.0001,
+    end: float = 0.02
 ) -> Callable[[Tensor], tuple[Tensor, Tensor, Tensor]]:
     """
     linear noise schedule\n
     args:
-    - `start`: starting time
-    - `end`: ending time\n
+    - `start`: starting noise, default `0.0001`
+    - `end`: ending noise, default `0.02`\n
     returns noise scheduling function
     """
     assert 0 <= start and start <= end and end <= 1.0,\
@@ -39,24 +39,36 @@ def linear_noise_scheduler(
 
     return scheduler
 
-def cosine_noise_scheduler(name: str) -> Callable[[Tensor], tuple[Tensor, Tensor, Tensor]]:
+def cosine_noise_scheduler(
+    name: str | None,
+    a: float | None = None,
+    b: float | None = None
+) -> Callable[[Tensor], tuple[Tensor, Tensor, Tensor]]:
     """
-    cosine noise schedule\n
-    2 types of schedule are available:\n
+    cosine noise schedule where alpha = cos(a * t + b)\n
+    2 names of schedule are available:\n
     one used in 'Moûsai: Text-to-Music Generation with Long-Context Latent Diffusion'(https://arxiv.org/abs/2301.11757)\n
     the other used in 'Noise2Music: Text-conditioned Music Generation with Diffusion Models'(https://arxiv.org/abs/2302.03917)\n
     args:
-    - `name`: name of schedule, 'mousai' or 'noise2music'\n
+    - `name`: name of schedule, 'mousai', 'noise2music', or `None`.
+              if `None`, `a` and `b` must be specified
+    - `a`: constant value, a number or `None`
+    - `b`: constant value, a number or `None`\n
     returns noise scheduling function
     """
-    a, b = 0., 0.
-    if name == "mousai":
+    if name is None:
+        assert isinstance(a, (int, float)) and isinstance(b, (int, float)),\
+            "values for `a` and `b` must be specified when `name` is None"
+        a = float(a)
+        b = float(b)
+    elif name == "mousai":
         a = 0.5 * np.pi
+        b = 0.0
     elif name == "noise2music":
         a = np.arctan(np.e ** 10) - np.arctan(np.e ** (-10))
         b = np.arctan(np.e ** (-10))
     else:
-        raise Exception(f"unknown scheduler {name}")
+        raise Exception(f"unknown scheduler `{name}`")
     
     def scheduler(t: Tensor) -> tuple[Tensor, Tensor, Tensor]:
         """
@@ -73,14 +85,21 @@ def cosine_noise_scheduler(name: str) -> Callable[[Tensor], tuple[Tensor, Tensor
 
     return scheduler
 
-def get_scheduler(name: str) -> Callable[[Tensor], tuple[Tensor, Tensor, Tensor]]:
+def get_scheduler(name: str | None, **kwargs) -> Callable[[Tensor], tuple[Tensor, Tensor, Tensor]]:
     """
+    scheduler function specified by `name`\n
+    arguments for `linear_noise_scheduler` or `cosine_noise_scheduler` can be passed as kwargs 
+    if you want to specify them\n
     args:
-    - `name`: name of schedule, 'linear', 'mousai', or 'noise2music'\n
+    - `name`: name of schedule, 'linear', 'mousai', 'noise2music', or `None`
+              if `None`, it is considered as cosine schedule\n
     returns noise scheduling function
     """
-    name = name.lower()
-    return linear_noise_scheduler() if name == "linear" else cosine_noise_scheduler(name=name)
+    name = name.lower() if isinstance(name, str) else name
+    if name == "linear":
+        return linear_noise_scheduler(**kwargs)
+    else:
+        return cosine_noise_scheduler(name, **kwargs)
 
 class GaussianDiffusion(nn.Module):
     """
