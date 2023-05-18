@@ -33,7 +33,8 @@ def linear_noise_scheduler(
         sigmas_squared = (end - start) * t + start
         sigmas = torch.sqrt(sigmas_squared)
         alphas = torch.sqrt(1.0 - sigmas_squared)
-        snrs = (1.0 / sigmas_squared) - 1.0
+        # snr = alpha^2 / sigma^2 = (1 - sigma^2) / sigma^2 = (1 / sigma^2) - 1
+        snrs = (1.0 / torch.clamp(sigmas_squared, min=1e-20)) - 1.0
         return alphas, sigmas, snrs
 
     return scheduler
@@ -65,9 +66,9 @@ def cosine_noise_scheduler(name: str) -> Callable[[Tensor], tuple[Tensor, Tensor
         returns 3 tensors for diffusion coefficients
         """
         alphas = torch.cos(a * t + b)
-        sigmas_squared = torch.clamp(1.0 - alphas ** 2, min=1e-20)
-        sigmas = torch.sqrt(sigmas_squared)
-        snrs = snrs = (1.0 / sigmas_squared) - 1.0
+        sigmas = torch.sin(a * t + b)
+        # snr = alpha^2 / sigma^2 = (1 - sigma^2) / sigma^2 = (1 / sigma^2) - 1
+        snrs = snrs = (1.0 / torch.clamp(sigmas ** 2, min=1e-20)) - 1.0
         return alphas, sigmas, snrs
 
     return scheduler
