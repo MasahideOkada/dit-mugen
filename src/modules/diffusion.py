@@ -68,7 +68,7 @@ def cosine_noise_scheduler(name: str) -> Callable[[Tensor], tuple[Tensor, Tensor
         alphas = torch.cos(a * t + b)
         sigmas = torch.sin(a * t + b)
         # snr = alpha^2 / sigma^2 = (1 - sigma^2) / sigma^2 = (1 / sigma^2) - 1
-        snrs = snrs = (1.0 / torch.clamp(sigmas ** 2, min=1e-20)) - 1.0
+        snrs = (1.0 / torch.clamp(sigmas ** 2, min=1e-20)) - 1.0
         return alphas, sigmas, snrs
 
     return scheduler
