@@ -9,6 +9,8 @@ from torch import Tensor
 import torch.nn as nn
 import torch.nn.functional as fn
 
+from utils import modulate
+
 class TimePositionEmbedding(nn.Module):
     """
     positional embedding for time\n
@@ -141,17 +143,6 @@ class MultiHeadAttention(nn.Module):
             .reshape(B, N, E) # (B, Ns, H, D) -> (B, Ns, E)
         )
         return self.out_proj(x) # (B, Ns, E) -> (B, Ns, E)
-
-def modulate(x: Tensor, shift: Tensor, scale: Tensor) -> Tensor:
-    """
-    modulates a tensor with shift and scale of adaptive layer norm\n
-    args:
-    - `x`: 3-D tensor with (bathes, num segments, embed dim)
-    - `shift`: 2-D tensor with shape (batches, embed dim)
-    - `scale`: 2-D tensor with shape (batches, embed dim)\n
-    returns tensor with the same shape as `x`
-    """
-    return x * (1 + scale.unsqueeze(1)) + shift.unsqueeze(1)
 
 class DiTBlock(nn.Module):
     """
